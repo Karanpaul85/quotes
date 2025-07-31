@@ -1,14 +1,15 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+   --light-grey1:#ccc;
+    --light-grey2:#f0f0f0;
+    --dark-grey1:#333;
+    --dark-grey2:#111;
+    --primary-color:#007bff;
+    --secondary-color:#6c757d;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+
 
 html,
 body {
@@ -34,9 +35,92 @@ a {
   color: inherit;
   text-decoration: none;
 }
+@font-face {
+font-family: "BrittanySignature";
+src: url("https://www.fnp.com/assets/css/custom/fonts/text-personalized/BrittanySignature.ttf")
+format("truetype");
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: "CherriesBlack";
+src: url("https://www.fnp.com/assets/css/custom/fonts/text-personalized/cherriesblack.ttf")
+format("truetype");
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: "PalatinoUnicode";
+src: url("https://www.fnp.com/assets/css/custom/fonts/text-personalized/unicode.palatino.ttf")
+format("truetype");
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: "Jester";
+src: url("https://www.fnp.com/assets/css/custom/fonts/text-personalized/Jester.ttf")
+format("truetype");
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: "LucianSchoenschrift";
+src: url("https://www.fnp.com/assets/css/custom/fonts/text-personalized/Lucian-Schoenschrift-CAT.ttf")
+format("truetype");
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: "Gabriola";
+src: url("https://www.fnp.com/assets/css/custom/fonts/text-personalized/Gabriola.ttf")
+format("truetype");
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: "Cambria";
+src: url("https://www.fnp.com/assets/css/custom/fonts/text-personalized/Cambria.ttf")
+format("truetype");
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: "CopperplateGothicBold";
+src: url("https://www.fnp.com/assets/css/custom/fonts/text-personalized/Copperplate-Gothic-Bold-Regular.ttf")
+format("truetype");
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: "SteelfishOutline";
+src: url("https://www.fnp.com/assets/css/custom/fonts/text-personalized/Steelfish-Outline.otf")
+format("truetype");
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: "MonotypeCorsiva";
+src: url("https://www.fnp.com/assets/css/custom/fonts/text-personalized/Monotype-Corsiva.ttf")
+format("truetype");
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: "RaiLowercase";
+src: url("https://www.fnp.com/assets/css/custom/fonts/text-personalized/RaiLowercase.ttf")
+format("truetype");
+font-weight: normal;
+font-style: normal;
+}
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+ #quotesCanvas{
+    position: relative;
+    z-index: 1;
+    background: #333;
+    height: 100%;
+}
+#textCanvas{
+    height: 100%;
+    position: absolute;
+    z-index: 1;
 }

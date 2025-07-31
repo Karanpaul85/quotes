@@ -1,0 +1,93 @@
+
+.addQuoteContainer{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 768px;
+    margin: auto;
+    background-color: var(--light-grey2);
+}
+.quotesCanvas {
+  position: relative;
+  width: 100%;
+  max-width: 768px;
+  border: 1px solid var(--light-grey1);
+  overflow: hidden;
+}
+.canvasSec{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--light-grey2);
+        position: relative;
+}
+
+.sec{
+    display: flex;
+    width: 100%;
+    margin-bottom: 10px;
+    justify-content: space-between;
+    padding: 10px;
+    position: relative;
+    z-index: 2;
+    gap: 4px;
+}
+.sec select,
+.sec input[type="range"]{
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--light-grey1);
+    border-radius: 8px;
+    cursor: pointer;
+}
+.sec input[type="file"]{
+    display: none;
+}
+.sec label{
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    background-color: var(--light-grey2);
+    cursor: pointer;
+    border-radius: 8px;
+}
+.sec label:hover{
+    background-color: var(--dark-grey1);
+}
+.sec textarea{
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--light-grey1);
+    resize: none;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    border-radius: 8px;
+}
+.sec textarea:focus{
+    outline: none;
+    border-color: var(--dark-grey2);
+}
+.sec button{
+    width: 48%;
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 1px solid var(--light-grey1);
+    min-height: 44px;
+}
+.otherSec{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: all ease-in-out 0.2s;
+}
+.disabled{
+    opacity: 0.5;
+    pointer-events: none;
+}
