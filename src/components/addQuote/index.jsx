@@ -203,11 +203,12 @@ const AddQuote = () => {
         fetch("/api/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageData: finalImageData }),
+          body: JSON.stringify({ imageData: finalImageData, quote: quote }),
         })
           .then((res) => res.json())
           .then((data) => {
             console.log("Image uploaded:", data);
+            window.location.href = `/singleQuote/${data.bucketName}/${data.imageName}`;
             handleClearQuotes();
           })
           .catch((err) => {

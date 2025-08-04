@@ -1,47 +1,58 @@
-import { mkdir, writeFile } from "fs/promises";
-import { join } from "path";
+import { v2 as cloudinary } from "cloudinary";
+
+// Cloudinary configuration (env vars must be set)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(request) {
   try {
-    const { imageData } = await request.json();
+    const { imageData, quote } = await request.json();
+    console.log(quote, "quote");
 
     if (!imageData) {
       return new Response("No image data provided", { status: 400 });
     }
 
-    // Strip the base64 header
-    const base64Data = imageData.replace(/^data:image\/jpeg;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-
-    // Get current date in DDMMYYYY format
+    // Get month and year
     const now = new Date();
-    const day = String(now.getDate()).padStart(2, "0");
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const year = String(now.getFullYear());
-    const bucket = `${day}${month}${year}`;
+    const folder = `${month}${year}`;
+    const fileName = `img_${now.getTime()}`;
 
-    // Define the upload directory
-    const uploadDir = join(process.cwd(), "public", "uploaded", bucket);
+    // Remove the base64 header if present
+    const base64Data = imageData.replace(/^data:image\/jpeg;base64,/, "");
 
-    // Create directory if it doesn't exist
-    await mkdir(uploadDir, { recursive: true });
+    // Upload directly to Cloudinary using a data URI
+    const uploadResponse = await cloudinary.uploader.upload(
+      `data:image/jpeg;base64,${base64Data}`,
+      {
+        folder,
+        public_id: fileName,
+        overwrite: true,
+        context: {
+          alt: quote,
+          caption: quote,
+          website: "Karan Paul",
+        },
+      }
+    );
 
-    // Generate a filename
-    const filename = `upload_${Date.now()}.jpeg`;
-    const filePath = join(uploadDir, filename);
-
-    // Write the image file
-    await writeFile(filePath, buffer);
-
-    // Return the public URL
-    const responseBody = JSON.stringify({
-      url: `/uploaded/${bucket}/${filename}`,
-    });
-
-    return new Response(responseBody, {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    // Respond with the public Cloudinary URL
+    return new Response(
+      JSON.stringify({
+        url: uploadResponse.secure_url,
+        bucketName: folder,
+        imageName: fileName,
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Upload failed:", error);
     return new Response(
