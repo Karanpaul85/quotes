@@ -183,6 +183,23 @@ const AddQuote = () => {
     });
   };
 
+  const openShare = async (data) => {
+    const response = await fetch(data?.url);
+    const blob = await response.blob();
+
+    const file = new File([blob], "image.jpg", { type: blob.type });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: data?.imageName,
+        text: "Check out this image!",
+        files: [file],
+      });
+    } else {
+      alert("Sharing not supported on this device.");
+    }
+  };
+
   const handleShareQuote = () => {
     if (!bgCanvas.current || !textCanvas.current || !quote) {
       console.error("Canvas or quote is not ready for sharing.");
@@ -208,7 +225,8 @@ const AddQuote = () => {
           .then((res) => res.json())
           .then((data) => {
             console.log("Image uploaded:", data);
-            window.location.href = `/singleQuote/${data.bucketName}/${data.imageName}`;
+            openShare(data);
+            // window.location.href = `/singleQuote/${data.bucketName}/${data.imageName}`;
             handleClearQuotes();
           })
           .catch((err) => {
