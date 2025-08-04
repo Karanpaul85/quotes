@@ -184,25 +184,20 @@ const AddQuote = () => {
   };
 
   const openShare = async (data) => {
-    try {
-      const response = await fetch(data?.url);
-      const blob = await response.blob();
+    const response = await fetch(data?.url);
+    const blob = await response.blob();
 
-      const file = new File([blob], "image.jpg", { type: blob.type });
+    const file = new File([blob], "image.jpg", { type: blob.type });
 
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: data?.imageName || "Shared Image",
-          text: `Check out this image!\n${data?.link || ""}`, // add link in the text
-          files: [file],
-          url: `${window.location.origin}/singleQuote/${data.bucketName}/${data.imageName}`, // optional, some platforms may use this as preview
-        });
-      } else {
-        alert("Sharing not supported on this device or browser.");
-      }
-    } catch (error) {
-      console.error("Error while sharing image:", error);
-      alert("Something went wrong while sharing.");
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: data?.imageName,
+        text: "Check out this image!",
+        files: [file],
+        url: `${window.location.origin}/singleQuote/${data.bucketName}/${data.imageName}`,
+      });
+    } else {
+      alert("Sharing not supported on this device.");
     }
   };
 
