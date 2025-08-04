@@ -91,3 +91,29 @@
     opacity: 0.5;
     pointer-events: none;
 }
+.popup{
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    background: #ccc;
+    z-index:9;
+}
+.popupImage{
+    width: 100vw;
+}
+.popupImage img{
+    max-width: 100%;
+}
+.popupSelect{
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+}
+.select , .select select{
+    width: 100%;
+}

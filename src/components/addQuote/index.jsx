@@ -1,7 +1,12 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 import styles from "./addQuotes.module.css";
-import { allFonts, colors, defaultTextStyles } from "@/utils/commonUtils";
+import {
+  allFonts,
+  colors,
+  defaultTextStyles,
+  quotesType,
+} from "@/utils/commonUtils";
 
 // Debounce function to limit how often a function fires
 function debounce(fn, delay) {
@@ -34,6 +39,18 @@ const AddQuote = () => {
   const [isDisabled, setIsDisabled] = useState(true);
   const [textStyles, setTextStyles] = useState(defaultTextStyles);
   const [isCanvasBusy, setIsCanvasBusy] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [finalData, setFinalData] = useState(null);
+
+  const [selectedQuotesType, setSelectedQuotesType] = useState(
+    Object.keys(quotesType)[0]
+  );
+  const [occasionOptions, setOccasionOptions] = useState(
+    quotesType[selectedQuotesType] || []
+  );
+  const [selectedOccasionType, setSelectedOccasionType] = useState(
+    occasionOptions[0] || ""
+  );
 
   // Set canvas height on mount
   useEffect(() => {
@@ -41,6 +58,12 @@ const AddQuote = () => {
       setCanvasHeight(canvasParent.current.offsetWidth);
     }
   }, []);
+
+  useEffect(() => {
+    const updatedOccasions = quotesType[selectedQuotesType] || [];
+    setOccasionOptions(updatedOccasions);
+    setSelectedOccasionType(updatedOccasions[0] || "");
+  }, [selectedQuotesType]);
 
   // Debounced update when text styles change
   const debouncedWriteText = useCallback(
@@ -183,63 +206,141 @@ const AddQuote = () => {
     });
   };
 
-  const openShare = async (data) => {
-    const response = await fetch(data?.url);
+  const openShare = async () => {
+    console.log(selectedQuotesType, selectedOccasionType);
+    const response = await fetch(finalData?.url);
     const blob = await response.blob();
 
     const file = new File([blob], "image.jpg", { type: blob.type });
+    const url = `${window.location.origin}/singlequote/${finalData.bucketName}/${finalData.imageName}`;
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
-        title: data?.imageName,
+        title: finalData?.imageName,
         text: "Check out this image!",
         files: [file],
-        url: `${window.location.origin}/singleQuote/${data.bucketName}/${data.imageName}`,
+        url: url,
       });
     } else {
       alert("Sharing not supported on this device.");
     }
   };
 
-  const handleShareQuote = () => {
+  const handleShareQuote = async () => {
     if (!bgCanvas.current || !textCanvas.current || !quote) {
       console.error("Canvas or quote is not ready for sharing.");
-      return;
+      return null;
     }
 
-    const ctx = bgCanvas.current.getContext("2d");
-    const quotesDataUrl = textCanvas.current.toDataURL("image/png");
-    const img = new window.Image();
-    img.src = quotesDataUrl;
+    return new Promise((resolve, reject) => {
+      const ctx = bgCanvas.current.getContext("2d");
+      const quotesDataUrl = textCanvas.current.toDataURL("image/png");
+      const img = new window.Image();
+      img.src = quotesDataUrl;
 
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, bgCanvas.current.width, bgCanvas.current.height);
-      if (!isCanvasBusy) {
-        const finalImageData = bgCanvas.current.toDataURL("image/jpeg");
+      img.onload = async () => {
+        try {
+          ctx.drawImage(
+            img,
+            0,
+            0,
+            bgCanvas.current.width,
+            bgCanvas.current.height
+          );
 
-        // Send to API
-        fetch("/api/upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageData: finalImageData, quote: quote }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            console.log("Image uploaded:", data);
-            openShare(data);
-            // window.location.href = `/singleQuote/${data.bucketName}/${data.imageName}`;
-            handleClearQuotes();
-          })
-          .catch((err) => {
-            console.error("Upload failed", err);
-          });
-      }
-    };
+          if (!isCanvasBusy) {
+            const finalImageData = bgCanvas.current.toDataURL("image/jpeg");
+
+            const response = await fetch("/api/upload", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ imageData: finalImageData, quote: quote }),
+            });
+
+            const data = await response.json();
+
+            if (data?.url && data?.bucketName && data?.imageName) {
+              resolve(data); // resolve final data
+            } else {
+              reject(new Error("Missing fields in response"));
+            }
+          }
+        } catch (error) {
+          console.error("Upload failed", error);
+          reject(error);
+        }
+      };
+
+      img.onerror = (err) => {
+        console.error("Image failed to load", err);
+        reject(err);
+      };
+    });
+  };
+
+  const sharePopup = ({ finalData, quotesType }) => {
+    return (
+      <div className={styles.popup}>
+        <div className={styles.popupImage}>
+          <img
+            src={finalData?.url}
+            alt={finalData?.imageName || "Quote Image"}
+          />
+        </div>
+        <div className={styles.popupSelect}>
+          <div className={styles.select}>
+            <span>Select Quotes Type</span>
+            <select
+              id="quotesTypes"
+              value={selectedQuotesType}
+              onChange={(e) => setSelectedQuotesType(e.target.value)}
+            >
+              {Object.keys(quotesType).map((quoteType) => (
+                <option key={quoteType} value={quoteType}>
+                  {quoteType}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.select}>
+            <span>Select Occasion Type</span>
+            <select
+              id="occasionTypes"
+              value={selectedOccasionType}
+              onChange={(e) => setSelectedOccasionType(e.target.value)}
+            >
+              {occasionOptions.map((occasion) => (
+                <option key={occasion} value={occasion}>
+                  {occasion}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <button onClick={openShare}>Share</button>
+      </div>
+    );
+  };
+
+  const handleCreateQuote = async () => {
+    setIsLoading(true);
+    try {
+      const finalData = await handleShareQuote();
+      setFinalData(finalData);
+      // Optionally trigger popup if needed
+      // if (finalData) sharePopup(finalData);
+    } catch (error) {
+      console.error("Error creating quote:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className={styles.addQuoteContainer}>
       <h1>Add a Quote</h1>
+      {isLoading && "Please wait we are generate image for sharing"}
+      {finalData && sharePopup({ finalData, quotesType })}
       <div className={styles.quotesCanvas}>
         <div
           className={styles.canvasSec}
@@ -325,8 +426,8 @@ const AddQuote = () => {
             </select>
           </div>
           <div className={styles.sec}>
-            <button id="shareQuoteButton" onClick={handleShareQuote}>
-              Share Quote
+            <button id="shareQuoteButton" onClick={handleCreateQuote}>
+              Create Quote
             </button>
             <button id="clearQuotesButton" onClick={handleClearQuotes}>
               Clear Quotes
