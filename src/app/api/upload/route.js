@@ -10,7 +10,7 @@ cloudinary.config({
 export async function POST(request) {
   try {
     const { imageData, quote } = await request.json();
-    console.log(quote, "quote");
+    console.log(quote, "quote", imageData);
 
     if (!imageData) {
       return new Response("No image data provided", { status: 400 });
@@ -34,9 +34,9 @@ export async function POST(request) {
         public_id: fileName,
         overwrite: true,
         context: {
-          alt: quote,
-          caption: quote,
-          website: "Karan Paul",
+          alt: encodeURIComponent(quote),
+          caption: encodeURIComponent(quote),
+          website: encodeURIComponent("Karan Paul"),
         },
       }
     );
