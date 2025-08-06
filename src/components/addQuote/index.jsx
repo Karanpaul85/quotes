@@ -207,7 +207,7 @@ const AddQuote = () => {
   };
 
   const openShare = async () => {
-    console.log(selectedQuotesType, selectedOccasionType);
+    console.log(selectedQuotesType.toLowerCase(), selectedOccasionType.replace(/[' ]/g, match => match === " " ? "_" : "").toLowerCase());
     const response = await fetch(finalData?.url);
     const blob = await response.blob();
 
