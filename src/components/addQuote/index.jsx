@@ -7,6 +7,7 @@ import {
   defaultTextStyles,
   quotesType,
 } from "@/utils/commonUtils";
+import { uploadToCloudinary } from "@/utils/uploadToCloudinary";
 
 // Debounce function to limit how often a function fires
 function debounce(fn, delay) {
@@ -41,6 +42,7 @@ const AddQuote = () => {
   const [isCanvasBusy, setIsCanvasBusy] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [finalData, setFinalData] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const [selectedQuotesType, setSelectedQuotesType] = useState(
     Object.keys(quotesType)[0]
@@ -207,7 +209,12 @@ const AddQuote = () => {
   };
 
   const openShare = async () => {
-    console.log(selectedQuotesType.toLowerCase(), selectedOccasionType.replace(/[' ]/g, match => match === " " ? "_" : "").toLowerCase());
+    console.log(
+      selectedQuotesType.toLowerCase(),
+      selectedOccasionType
+        .replace(/[' ]/g, (match) => (match === " " ? "_" : ""))
+        .toLowerCase()
+    );
     const response = await fetch(finalData?.url);
     const blob = await response.blob();
 
@@ -226,6 +233,57 @@ const AddQuote = () => {
     }
   };
 
+  // const handleShareQuote = async () => {
+  //   if (!bgCanvas.current || !textCanvas.current || !quote) {
+  //     console.error("Canvas or quote is not ready for sharing.");
+  //     return null;
+  //   }
+
+  //   return new Promise((resolve, reject) => {
+  //     const ctx = bgCanvas.current.getContext("2d");
+  //     const quotesDataUrl = textCanvas.current.toDataURL("image/png");
+  //     const img = new window.Image();
+  //     img.src = quotesDataUrl;
+
+  //     img.onload = async () => {
+  //       try {
+  //         ctx.drawImage(
+  //           img,
+  //           0,
+  //           0,
+  //           bgCanvas.current.width,
+  //           bgCanvas.current.height
+  //         );
+
+  //         if (!isCanvasBusy) {
+  //           const finalImageData = bgCanvas.current.toDataURL("image/jpeg");
+
+  //           const response = await fetch("/api/upload", {
+  //             method: "POST",
+  //             headers: { "Content-Type": "application/json" },
+  //             body: JSON.stringify({ imageData: finalImageData, quote: quote }),
+  //           });
+
+  //           const data = await response.json();
+
+  //           if (data?.url && data?.bucketName && data?.imageName) {
+  //             resolve(data); // resolve final data
+  //           } else {
+  //             reject(new Error("Missing fields in response"));
+  //           }
+  //         }
+  //       } catch (error) {
+  //         console.error("Upload failed", error);
+  //         reject(error);
+  //       }
+  //     };
+
+  //     img.onerror = (err) => {
+  //       console.error("Image failed to load", err);
+  //       reject(err);
+  //     };
+  //   });
+  // };
   const handleShareQuote = async () => {
     if (!bgCanvas.current || !textCanvas.current || !quote) {
       console.error("Canvas or quote is not ready for sharing.");
@@ -251,30 +309,29 @@ const AddQuote = () => {
           if (!isCanvasBusy) {
             const finalImageData = bgCanvas.current.toDataURL("image/jpeg");
 
-            const response = await fetch("/api/upload", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ imageData: finalImageData, quote: quote }),
+            const blob = await (await fetch(finalImageData)).blob();
+            const file = new File([blob], "image.jpg", { type: "image/jpeg" });
+
+            const uploadResponse = await uploadToCloudinary(
+              file,
+              quote,
+              (progress) => {
+                setUploadProgress(progress);
+              }
+            );
+
+            resolve({
+              url: uploadResponse.secure_url,
+              bucketName: uploadResponse.folder,
+              imageName: uploadResponse.public_id,
             });
-
-            const data = await response.json();
-
-            if (data?.url && data?.bucketName && data?.imageName) {
-              resolve(data); // resolve final data
-            } else {
-              reject(new Error("Missing fields in response"));
-            }
           }
         } catch (error) {
-          console.error("Upload failed", error);
           reject(error);
         }
       };
 
-      img.onerror = (err) => {
-        console.error("Image failed to load", err);
-        reject(err);
-      };
+      img.onerror = (err) => reject(err);
     });
   };
 
@@ -339,6 +396,7 @@ const AddQuote = () => {
   return (
     <div className={styles.addQuoteContainer}>
       <h1>Add a Quote</h1>
+      {uploadProgress > 0 && <p>{uploadProgress}</p>}
       {isLoading && "Please wait we are generate image for sharing"}
       {finalData && sharePopup({ finalData, quotesType })}
       <div className={styles.quotesCanvas}>
